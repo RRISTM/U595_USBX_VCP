@@ -49,13 +49,13 @@ static UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm_parameter;
 static TX_THREAD ux_device_app_thread;
 
 /* USER CODE BEGIN PV */
-
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 static VOID app_ux_device_thread_entry(ULONG thread_input);
 /* USER CODE BEGIN PFP */
-
+VOID USBX_APP_Device_Init(VOID);
 /* USER CODE END PFP */
 
 /**
@@ -189,10 +189,45 @@ UINT MX_USBX_Device_Init(VOID *memory_ptr)
 static VOID app_ux_device_thread_entry(ULONG thread_input)
 {
   /* USER CODE BEGIN app_ux_device_thread_entry */
-  TX_PARAMETER_NOT_USED(thread_input);
+/* Initialization of USB device */
+  USBX_APP_Device_Init();
+
+  /* Start device USB */
+  HAL_PCD_Start(&hpcd_USB_OTG_HS);
+  /* Wait for message queue to start/stop the device */
+  while(1)
+  {
+
+  }
   /* USER CODE END app_ux_device_thread_entry */
 }
 
 /* USER CODE BEGIN 1 */
+/**
+  * @brief  USBX_APP_Device_Init
+  *         Initialization of USB device.
+  * @param  none
+  * @retval none
+  */
+VOID USBX_APP_Device_Init(VOID)
+{
+  /* USER CODE BEGIN USB_Device_Init_PreTreatment_0 */
+  /* USER CODE END USB_Device_Init_PreTreatment_0 */
 
+  /* USB_OTG_HS init function */
+  MX_USB_OTG_HS_PCD_Init();
+
+  /* USER CODE BEGIN USB_Device_Init_PreTreatment_1 */
+  HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_HS, 0x100);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 0, 0x10);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 1, 0x20);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 2, 0x10);
+  /* USER CODE END USB_Device_Init_PreTreatment_1 */
+
+  /* initialize the device controller driver*/
+  _ux_dcd_stm32_initialize((ULONG)USB_OTG_HS, (ULONG)&hpcd_USB_OTG_HS);
+
+  /* USER CODE BEGIN USB_Device_Init_PostTreatment */
+  /* USER CODE END USB_Device_Init_PostTreatment */
+}
 /* USER CODE END 1 */
